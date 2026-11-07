@@ -7,14 +7,14 @@ Fastener: hits and shoves cannot make you drop what you hold.
 ## How to Use
 
 1. Find the **Stapler** valuable and store it in a free inventory slot with [Pockets](https://thunderstore.io/c/repo/p/OsmarBriones/Pockets/) (grab it, press the slot key).
-2. TODO: describe when the power triggers.
+2. While it stays in your pocket, hits on the thing you are holding and shoves from other players can no longer knock it out of your hands. Each time the Stapler saves your grip, it loses a little of its value.
 3. Take the valuable out of the pocket and the power stops.
 
 ## Features
 
-- **Fastener:** TODO: one gameplay sentence.
-- **It costs the valuable:** each use wears away a share of its value, and a worn-out valuable breaks.
-- **Everything is configurable:** wear, pause between uses and anything specific to this power. The host's choices apply to everyone.
+- **Fastener:** hits on the object you hold, hard knocks and shoves cannot make you let go of it. Letting go on purpose, running out of stamina, dying and monsters that grab things still work as usual. Climbing is not affected.
+- **It costs the valuable:** each time it saves your grip it wears away a share of its value, and a worn-out valuable breaks. A hit that lasts a moment is charged once.
+- **Everything is configurable:** wear, the pause between charges and an on/off switch. The host's choices apply to everyone.
 
 ## Requirements
 - [BepInEx Pack for R.E.P.O.](https://thunderstore.io/c/repo/p/BepInEx/BepInExPack/)
@@ -29,7 +29,9 @@ Fastener: hits and shoves cannot make you drop what you hold.
 Settings are in `com.osmar.CharmStapler.cfg` inside `BepInEx/config`, section `Charm.Stapler`. The host's choices apply to everyone.
 
 - `Enabled` (default `true`): turn this charm on or off.
-- `WearPercent` (default `10`): share of the valuable's original value lost on each use.
+- `WearPercent` (default `10`): share of the valuable's original value lost each time your grip is saved.
+- `WearCooldownSeconds` (0 to 5, default `0.5`): saves within this time of the last charge cost no extra wear.
+- `EnableBlocking` (0 or 1, default `1`): 0 switches the power off (safety switch).
 
 Section `Debug`: `DebugMode` (default `false`) places a Stapler on the floor in front of you when a level starts (host or singleplayer) and writes extra log lines. For testing.
 

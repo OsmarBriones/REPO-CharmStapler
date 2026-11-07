@@ -28,11 +28,38 @@ public class GameContractTests
 	// ---- Members we read or write ----
 
 	[TestMethod]
-	public void Valuable_HasTheValueFields()
+	public void PhysGrabber_HasTheReleaseMembers()
 	{
-		// TODO: add one RequireField / RequireMethod line for every game member this charm's effect reads, writes or patches,
-		// so a game update that renames or removes one fails here with a clear message.
-		RequireField("ValuableObject", "dollarValueCurrent");
+		// Patched (blockers) with their parameter counts: OverrideGrabRelease(int, float), ReleaseObject(int, float),
+		// ReleaseObjectRPC(bool, float, int, int, PhotonMessageInfo). Fastener uses the positional argument __0 / __2.
+		RequireMethod("PhysGrabber", "OverrideGrabRelease", 2);
+		RequireMethod("PhysGrabber", "ReleaseObject", 2);
+		RequireMethod("PhysGrabber", "ReleaseObjectRPC", 5);
+	}
+
+	[TestMethod]
+	public void PhysGrabber_HasTheHoldingMembers()
+	{
+		RequireField("PhysGrabber", "playerAvatar");
+		RequireField("PhysGrabber", "grabbed");
+		RequireField("PhysGrabber", "grabbedPhysGrabObject");
+		RequireField("PhysGrabber", "grabbedStaticGrabObject");
+	}
+
+	[TestMethod]
+	public void HitAndShoveWindows_StillExist()
+	{
+		RequireMethod("PlayerTumble", "TumbleImpactRPC", 2);
+		RequireMethod("HurtCollider", "PhysObjectHurt", 7);
+		RequireField("HurtCollider", "physReleaseGrab");
+		RequireMethod("HurtCollider", "ColliderCheck", 0);
+	}
+
+	[TestMethod]
+	public void HurtCollider_ColliderCheckCoroutine_HasMoveNext()
+	{
+		// The coroutine class is compiler generated and patched by name prefix "<ColliderCheck>".
+		RequireNestedMethod("HurtCollider", "<ColliderCheck>", "MoveNext");
 	}
 
 	// ---- Helpers ----
@@ -41,6 +68,13 @@ public class GameContractTests
 	{
 		TypeShape shape = RequireType(type);
 		Assert.IsTrue(shape.Methods.Contains(method + "/" + parameterCount), $"{type}.{method}({parameterCount} parameters) was not found in the game assembly.");
+	}
+
+	private static void RequireNestedMethod(string parent, string namePrefix, string method)
+	{
+		RequireType(parent);
+		bool found = Types.Any(pair => pair.Key.StartsWith(parent + "+" + namePrefix, StringComparison.Ordinal) && pair.Value.Methods.Contains(method + "/0"));
+		Assert.IsTrue(found, $"No nested type {parent}+{namePrefix}* with {method}() was found in the game assembly.");
 	}
 
 	private static void RequireField(string type, string field)
@@ -76,7 +110,18 @@ public class GameContractTests
 		foreach (TypeDefinitionHandle handle in reader.TypeDefinitions)
 		{
 			TypeDefinition definition = reader.GetTypeDefinition(handle);
-			if (!definition.GetDeclaringType().IsNil || reader.GetString(definition.Namespace).Length != 0)
+			string key = reader.GetString(definition.Name);
+			if (!definition.GetDeclaringType().IsNil)
+			{
+				TypeDefinition parent = reader.GetTypeDefinition(definition.GetDeclaringType());
+				if (!parent.GetDeclaringType().IsNil || reader.GetString(parent.Namespace).Length != 0)
+				{
+					continue;
+				}
+
+				key = reader.GetString(parent.Name) + "+" + key;
+			}
+			else if (reader.GetString(definition.Namespace).Length != 0)
 			{
 				continue;
 			}
@@ -94,7 +139,7 @@ public class GameContractTests
 				shape.Methods.Add(reader.GetString(methodDefinition.Name) + "/" + parameters);
 			}
 
-			types[reader.GetString(definition.Name)] = shape;
+			types[key] = shape;
 		}
 
 		return types;

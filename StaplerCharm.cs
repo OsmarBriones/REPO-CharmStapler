@@ -10,8 +10,16 @@ namespace CharmStapler
 		internal StaplerCharm()
 			: base("Stapler", "Stapler - Fastener", defaultWearPercent: 10f, defaultCooldownSeconds: null, PrefabName)
 		{
-			// Extra host-synced numbers for this power go here, for example:
-			// Amount = AddSetting("Amount", 30f, 1f, 100f, "Description for the config file.");
+			WearCooldownSeconds = AddSetting("WearCooldownSeconds", 0.5f, 0f, 5f, "After a hit or shove was stopped from making you drop something, further stopped drops within this many seconds cost no extra wear (so a hit that lasts several moments is charged once). 0 charges every stopped drop.");
+			EnableBlocking = AddSetting("EnableBlocking", 1f, 0f, 1f, "1 lets the Stapler stop hits and shoves from making you drop what you hold, 0 switches that off (a safety switch). The host's choice applies to everyone.");
 		}
+
+		/// <summary>Seconds (0 to 5) during which further prevented releases of the same player cost no extra wear.</summary>
+		internal CharmSetting WearCooldownSeconds { get; }
+
+		/// <summary>1 = the block works, 0 = the charm does nothing.</summary>
+		internal CharmSetting EnableBlocking { get; }
+
+		internal bool BlockingEnabled => EnableBlocking.Value >= 0.5f;
 	}
 }

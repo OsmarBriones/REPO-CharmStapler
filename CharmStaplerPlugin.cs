@@ -1,5 +1,7 @@
 using BepInEx;
 using CharmCore.Api;
+using CharmStapler.Patches;
+using HarmonyLib;
 using UnityEngine;
 
 namespace CharmStapler
@@ -15,6 +17,9 @@ namespace CharmStapler
 
 		internal static new BepInEx.Logging.ManualLogSource Logger { get; private set; } = null!;
 
+		/// <summary>The registered charm, for the patches.</summary>
+		internal static StaplerCharm Charm { get; private set; } = null!;
+
 		private void Awake()
 		{
 			Logger = base.Logger;
@@ -24,9 +29,22 @@ namespace CharmStapler
 			this.gameObject.hideFlags = HideFlags.HideAndDontSave;
 
 			// Registering binds Enabled, WearPercent, CooldownSeconds and the Debug section (DebugMode) in this mod's config file.
-			StaplerCharm charm = new StaplerCharm();
-			CharmsApi.Register(charm, Config);
-			this.gameObject.AddComponent<Fastener>().Charm = charm;
+			Charm = new StaplerCharm();
+			CharmsApi.Register(Charm, Config);
+
+			try
+			{
+				Harmony harmony = new Harmony(PluginGuid);
+				harmony.PatchAll();
+				if (!HurtCollider_ColliderCheck_Patch.Apply(harmony))
+				{
+					Logger.LogError("Fastener: the hit-on-held-object hook was not applied (HurtCollider coroutine ColliderCheck not found). Those hits will still make you drop things.");
+				}
+			}
+			catch (System.Exception exception)
+			{
+				Logger.LogError($"Fastener: applying the patches failed: {exception}");
+			}
 
 			Logger.LogInfo($"{PluginName} {PluginVersion} loaded!");
 		}
