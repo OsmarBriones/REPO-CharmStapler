@@ -17,7 +17,6 @@ namespace CharmStapler
 	{
 		internal static readonly ReleaseWindow Window = new ReleaseWindow();
 
-		private static readonly WearThrottle Throttle = new WearThrottle();
 		private static bool errorReported;
 
 		/// <summary>True when the release this grabber is about to undergo must be skipped. Wears the Stapler once per prevented release.</summary>
@@ -43,14 +42,20 @@ namespace CharmStapler
 					return false;
 				}
 
-				if (Throttle.TryCharge(avatar.GetInstanceID(), Time.time, charm.WearCooldownSeconds.Value))
+				if (charm.Throttle.TryCharge(avatar.GetInstanceID(), Time.time, charm.WearCooldownSeconds.Value))
 				{
 					charm.WearValuable(carried!, charm.WearPercent);
-					charm.LogDebug($"Prevented a forced release for {avatar.name} (wear {charm.WearPercent:0.#}%)");
+					if (charm.DebugMode)
+					{
+						charm.LogDebug($"Prevented a forced release for {avatar.name} (wear {charm.WearPercent:0.#}%)");
+					}
 				}
 				else
 				{
-					charm.LogDebug($"Prevented a forced release for {avatar.name} (no wear, cooldown)");
+					if (charm.DebugMode)
+					{
+						charm.LogDebug($"Prevented a forced release for {avatar.name} (no wear, cooldown)");
+					}
 				}
 
 				return true;

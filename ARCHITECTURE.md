@@ -49,3 +49,15 @@ Provided by CharmCore: the `Debug.DebugMode` setting (off by default) places the
 - Looked up by exact prefab name; a game update that renames the prefab needs a mod update.
 - Not verified in game: the whole effect (see the QA battery). In particular that `PhysGrabber.grabbed` is true on the host for remote players (read from `PhysGrabObject.GrabLinkRPC`), that Harmony can patch the coroutine `MoveNext`, and that nothing else inside those host windows asks to release a carrier (UnityEvents such as `onImpactAny`).
 - Other releases can still drop the object after a shove: the distance release and a destroyed object.
+
+## Runtime hygiene
+
+Reviewed against `RepoKit/references/runtime-hygiene.md`.
+
+1. Lifetime of references: fixed. The wear throttle (dictionary of avatar instance id to time) was a static field of `Fastener` and was never cleared. It now belongs to `StaplerCharm` and `OnLevelEnded` clears it. The release window holds only two integers (depth and frame) and is valid for a single frame, so it needs no clearing. No static field holds a game object; no working buffers.
+2. Work frequency: nothing needed. There is no Update loop. The release patches exit on the first check while the window is closed (`Window.IsActive`), so unrelated releases cost O(1).
+3. Allocations in hot paths: the two debug lines in `ShouldBlock` are now guarded with `if (charm.DebugMode)`. The carrier lookup allocates (a closure and CharmCore's own lists) but only runs inside an open window with a held object, which is rare; left as is to keep behaviour identical. No `Find...` calls.
+4. UI: not applicable, the mod has no UI.
+5. Patches: ok. Window patches only count; blocker patches exit early and keep no state outside the charm.
+
+Unverified: not run in game.
