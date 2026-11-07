@@ -33,7 +33,7 @@ Settings are in `com.osmar.CharmStapler.cfg` inside `BepInEx/config`, section `C
 - `WearCooldownSeconds` (0 to 5, default `0.5`): saves within this time of the last charge cost no extra wear.
 - `EnableBlocking` (0 or 1, default `1`): 0 switches the power off (safety switch).
 
-Section `Debug`: `DebugMode` (default `false`) places a Stapler on the floor in front of you when a level starts (host or singleplayer) and writes extra log lines. For testing.
+Section `Debug`: `DebugMode` (default `false`) places a Stapler on the floor in front of you when a level starts (host or singleplayer) and writes extra log lines. For testing. `SpawnNow` (default `false`, needs `DebugMode`): set it to `true` while a level is running to place one right away; it switches itself back off.
 
 ## Issues & Bug Reports
 The official way to report issues, suggest improvements, or submit feedback is by opening an issue on the official GitHub repository:
